@@ -19,9 +19,12 @@ class body:
             if body_list[i].pos_x != self.pos_x or body_list[i].pos_y != self.pos_y:
                 theta = math.atan2(body_list[i].pos_y - self.pos_y, body_list[i].pos_x - self.pos_x)
                 r2 = (self.pos_x - body_list[i].pos_x) ** 2 + (self.pos_y - body_list[i].pos_y) ** 2
-                if r2 > 400 ** 2:
+                #print(i,':',self.pos_x, self.pos_y, '/', body_list[i].pos_x, body_list[i].pos_y)
+                if r2 > 600 ** 2:
+                   # print(i,'escaped')
                     escaped = True
                 if r2 < (self.radius + body_list[i].radius) ** 2:
+                   # print(i,'crashed')
                     self.pos_x = (self.radius**3*self.pos_x+body_list[i].radius**3*body_list[i].pos_x)/(self.radius**3+body_list[i].radius**3)
                     self.pos_y = (self.radius**3*self.pos_y+body_list[i].radius**3*body_list[i].pos_y)/(self.radius**3+body_list[i].radius**3)
                     self.speed_x = (self.radius**3*self.speed_x+body_list[i].radius**3*body_list[i].speed_x)/(self.radius**3+body_list[i].radius**3)

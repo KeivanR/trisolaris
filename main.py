@@ -1,12 +1,12 @@
 import bodies
 import gui
-from parameters import *
+import parameters
 
-
+# poses, speeds, radius, names = parameters.big_bang(70)
+poses, speeds, radius, names = parameters.trisolaris()
 n_tries = 1
 results = ["Crashed", "Escaped"]
 max_duration = 0
-n_bodies = 30
 for k in range(n_tries):
     body_list = []
     for i in range(len(names)):
@@ -21,8 +21,8 @@ for k in range(n_tries):
             )
         )
     n_crashes, escaped, duration = gui.start(body_list, display=True)
-    if duration>max_duration:
-        max_duration=duration
+    if duration > max_duration:
+        max_duration = duration
         best_poses = poses
         best_speeds = speeds
     # print("*"*200)

@@ -2,8 +2,16 @@ import pygame
 from parameters import *
 import time
 import numpy as np
+import keyboard
 
 margin = 5
+zoom = 0.4
+
+
+def draw(screen, x, y, r, col):
+    w = screen.get_width()
+    h = screen.get_height()
+    pygame.draw.ellipse(screen, col, (x - r + w / 2, y - r + h / 2, 2 * r, 2 * r))
 
 
 def start(body_list, display=True):
@@ -11,27 +19,47 @@ def start(body_list, display=True):
         SCREEN = pygame.display.set_mode((screen_width, screen_height))
         SCREEN.fill((0, 0, 0))
     duration = 0
-    pos_tot = np.average(poses, axis=0, weights=[body_list[k].radius**3 for k in range(len(body_list))])
-    translate = [screen_width // 2 - pos_tot[0], screen_height // 2 - pos_tot[1]]
     all_crashes = []
+    crashes = []
+    escaped = False
+    poses = []
+    for i in range(len(body_list)):
+        poses.append([body_list[i].pos_x, body_list[i].pos_y])
+    pos_avg = np.average(poses, axis=0, weights=[body_list[k].radius ** 3 for k in range(len(body_list))])
+    center = [10,0]
     while True:
         if display:
+            if len(body_list) == 1:
+                return len(crashes), escaped, duration
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    quit()
+                    return len(crashes), escaped, duration
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        SCREEN.fill((0, 0, 0))
+                        center[0] -= 10
+                    if event.key == pygame.K_RIGHT:
+                        SCREEN.fill((0, 0, 0))
+                        center[0] += 10
+                    if event.key == pygame.K_DOWN:
+                        SCREEN.fill((0, 0, 0))
+                        center[1] += 10
+                    if event.key == pygame.K_UP:
+                        SCREEN.fill((0, 0, 0))
+                        center[1] -= 10
         if display:
             for i in range(len(body_list)):
-                x = body_list[i].pos_x + translate[0]
-                y = body_list[i].pos_y + translate[1]
-                r = body_list[i].radius
-                pygame.draw.ellipse(SCREEN, (0, 0, 0),
-                                    (x - r - margin, y - r - margin, 2 * r + 2 * margin, 2 * r + 2 * margin))
-
-        pos_tot = np.average(poses, axis=0, weights=[body_list[k].radius**3 for k in range(len(body_list))])
-        translate = [screen_width // 2 - pos_tot[0], screen_height // 2 - pos_tot[1]]
+                x = (body_list[i].pos_x - pos_avg[0]) * zoom - center[0]
+                y = (body_list[i].pos_y - pos_avg[1]) * zoom - center[1]
+                r = body_list[i].radius * zoom
+                draw(SCREEN, x, y, 2 * r + margin, (0, 0, 0))
 
         all_crashes.sort()
         for i in all_crashes[::-1]:
+            x = (body_list[i].pos_x - pos_avg[0]) * zoom - center[0]
+            y = (body_list[i].pos_y - pos_avg[1]) * zoom - center[1]
+            r = body_list[i].radius * zoom
+            draw(SCREEN, x, y, 2 * r + margin, (0, 0, 0))
             body_list.pop(i)
             poses.pop(i)
         all_crashes = []
@@ -42,15 +70,15 @@ def start(body_list, display=True):
                 if not display and (len(crashes) or escaped):
                     return len(crashes), escaped, duration
                 poses[i] = [body_list[i].pos_x, body_list[i].pos_y]
-
-                x = body_list[i].pos_x + translate[0]
-                y = body_list[i].pos_y + translate[1]
-                r = body_list[i].radius
+                pos_avg = np.average(poses, axis=0, weights=[body_list[k].radius ** 3 for k in range(len(body_list))])
                 if display:
-                    pygame.draw.ellipse(SCREEN, (0, 255, 0), (x - r, y - r, 2 * r, 2 * r))
+                    x = (body_list[i].pos_x - pos_avg[0]) * zoom - center[0]
+                    y = (body_list[i].pos_y - pos_avg[1]) * zoom - center[1]
+                    r = body_list[i].radius * zoom
+                    draw(SCREEN, x, y, r, (0, 255, 0))
         if display:
             pygame.display.update()
 
         if display:
-            time.sleep(dt/fastfwd)
+            time.sleep(dt / fastfwd)
         duration += dt
